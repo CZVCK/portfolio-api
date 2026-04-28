@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
+import sqlite3
 
 load_dotenv()
 
@@ -48,5 +49,40 @@ def contact():
 
     return jsonify({"success": True}), 200
 
+
+#MTG Tracker end point
+
+MTG_DB = os.path.expanduser("~/Projects/mtg-tracker/db/mtg.db")
+
+@app.route("/mtg/prices", methods=["GET"])
+def mtg_prices():
+    conn = sqlite3.connect(MTG_DB)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT c.name, ph.price_usd, ph.recorded_at
+        FROM price_history ph
+        JOIN cards c ON ph.card_id = c.id
+        ORDER BY c.name, ph.recorded_at ASC
+    """)
+
+    rows = cur.fetchall()
+    conn.close()
+
+    # Group prices by card name
+    cards = {}
+    for row in rows:
+        name = row["name"]
+        if name not in cards:
+            cards[name] = []
+        cards[name].append({
+            "price": row["price_usd"],
+            "date": row["recorded_at"]
+        })
+
+    return jsonify(cards)
+
+#At the bottom of everything - Bright Eyes
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5051)
