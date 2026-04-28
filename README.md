@@ -1,7 +1,7 @@
 # portfolio-api
 
 A unified Flask API powering [czvck.com](https://work.czvck.com) — 
-self-hosted on a Raspberry Pi 400 and served via nginx.
+self-hosted on a Raspberry Pi and served via nginx.
 
 ## Overview
 
